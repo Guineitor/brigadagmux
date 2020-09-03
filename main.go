@@ -45,6 +45,10 @@ type Post struct {
 	ID        primitive.ObjectID `bson:"permalink"`
 }
 
+type Posts struct {
+	Posts []*Post
+}
+
 func main() {
 	r := mux.NewRouter()
 
@@ -72,11 +76,16 @@ func Index(w http.ResponseWriter, r *http.Request) {
 // Blog page
 func Blog(w http.ResponseWriter, r *http.Request) {
 	posts, _ := getAll()
-	// for _, v := range posts {
-	// 	fmt.Print(v.Titulo)
-	// }
+	for _, v := range posts {
+		fmt.Print(v.Titulo)
+	}
+
+	data := Posts{
+		Posts: posts,
+	}
+
 	blog := template.Must(template.ParseFiles("template/blog.html"))
-	blog.Execute(w, posts)
+	blog.Execute(w, data)
 }
 
 // Post page
@@ -85,7 +94,7 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 	permalink := vars["permalink"]
 	fmt.Print(permalink)
 
-	var pp = &Post{
+	var p = &Post{
 		Titulo:    "LOREM IPSUM  LOREM IPSUM LOREM IPSUM LOREM IPSUM ",
 		SubTitulo: "LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM ",
 		Conteudo:  "LOREM IPSUM LOREM IPSUM LOREIPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSU ",
@@ -100,7 +109,7 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	post := template.Must(template.ParseFiles("template/post.html"))
-	post.Execute(w, pp)
+	post.Execute(w, p)
 }
 
 func createPost(post *Post) error {
