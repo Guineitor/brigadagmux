@@ -66,7 +66,7 @@ func main() {
 	r.HandleFunc("/blog", Blog).Methods("GET")
 	r.HandleFunc("/post", Post).Methods("GET")
 
-	http.ListenAndServe(":9990", r)
+	http.ListenAndServe(":9991", r)
 }
 
 // Manifesto page
