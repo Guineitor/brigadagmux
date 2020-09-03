@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -20,12 +21,13 @@ func main() {
 
 // Manifesto page
 func Manifesto(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Manifesto:")
+	template.Must(template.ParseFiles("template/manifesto.html")).Execute(w, struct{ Success bool }{true})
 }
 
 // Index page
 func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Index:")
+	template.Must(template.ParseFiles("template/index.html")).Execute(w, struct{ Success bool }{true})
+
 }
 
 // Blog page
