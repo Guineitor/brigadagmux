@@ -1,15 +1,61 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 )
 
+type P struct {
+	Titulo    string `json:"titulo"`
+	SubTitulo string `json:"sub_titulo"`
+	Conteudo  string `json:"conteudo"`
+	Fotos     string `json:"fotos"`
+	Autor     string `json:"autor"`
+	Data      string `json:"data"`
+	Permalink string `json:"permalink"`
+}
+
+type Posts struct {
+	Posts []P
+}
+
+func FindPost() []P {
+
+	jsonFile, err := os.Open("posts.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Successfully Opened posts.json")
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
+
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	var p []P
+
+	json.Unmarshal(byteValue, &p)
+
+	return p
+}
+
+func GetPosts() Posts {
+	data := Posts{
+		Posts: FindPost(),
+	}
+	return data
+}
+
 func main() {
 	r := mux.NewRouter()
+
+	fs := http.FileServer(http.Dir("assets/"))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 
 	r.HandleFunc("/", Index).Methods("GET")
 	r.HandleFunc("/manifesto", Manifesto).Methods("GET")
@@ -32,9 +78,9 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 // Blog page
 func Blog(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	page := vars["page"]
-	fmt.Fprintf(w, "Blog: %s", page)
+	data := GetPosts()
+	blog := template.Must(template.ParseFiles("template/blog.html"))
+	blog.Execute(w, data)
 }
 
 // Post page
