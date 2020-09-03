@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// P
 type P struct {
 	Titulo    string `json:"titulo"`
 	SubTitulo string `json:"sub_titulo"`
@@ -21,10 +22,12 @@ type P struct {
 	Permalink string `json:"permalink"`
 }
 
+// Posts
 type Posts struct {
 	Posts []P
 }
 
+// Find posts
 func FindPost() []P {
 
 	jsonFile, err := os.Open("posts.json")
@@ -44,6 +47,7 @@ func FindPost() []P {
 	return p
 }
 
+// Get posts
 func GetPosts() Posts {
 	data := Posts{
 		Posts: FindPost(),
@@ -59,7 +63,7 @@ func main() {
 
 	r.HandleFunc("/", Index).Methods("GET")
 	r.HandleFunc("/manifesto", Manifesto).Methods("GET")
-	r.HandleFunc("/blog/{page}", Blog).Methods("GET")
+	r.HandleFunc("/blog", Blog).Methods("GET")
 	r.HandleFunc("/post/{permalink}", Post).Methods("GET")
 
 	http.ListenAndServe(":9990", r)
@@ -73,7 +77,6 @@ func Manifesto(w http.ResponseWriter, r *http.Request) {
 // Index page
 func Index(w http.ResponseWriter, r *http.Request) {
 	template.Must(template.ParseFiles("template/index.html")).Execute(w, struct{ Success bool }{true})
-
 }
 
 // Blog page
@@ -87,5 +90,6 @@ func Blog(w http.ResponseWriter, r *http.Request) {
 func Post(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	permalink := vars["permalink"]
-	fmt.Fprintf(w, "Post: %s", permalink)
+	post := template.Must(template.ParseFiles("template/post.html"))
+	post.Execute(w, permalink)
 }
