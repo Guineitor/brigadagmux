@@ -64,7 +64,7 @@ func main() {
 	r.HandleFunc("/", Index).Methods("GET")
 	r.HandleFunc("/manifesto", Manifesto).Methods("GET")
 	r.HandleFunc("/blog", Blog).Methods("GET")
-	r.HandleFunc("/post/{permalink}", Post).Methods("GET")
+	r.HandleFunc("/post", Post).Methods("GET")
 
 	http.ListenAndServe(":9990", r)
 }
@@ -88,8 +88,17 @@ func Blog(w http.ResponseWriter, r *http.Request) {
 
 // Post page
 func Post(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	permalink := vars["permalink"]
+	// vars := mux.Vars(r)
+	// permalink := vars["permalink"]
+	var p = P{
+		Titulo:    "LOREM IPSUM  LOREM IPSUM LOREM IPSUM LOREM IPSUM ",
+		SubTitulo: "LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM ",
+		Conteudo:  "LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM ",
+		Fotos:     "static/img/portfolio/fullsize/1.jpg",
+		Autor:     "Comuna da Catarina",
+		Data:      "30/06/2020",
+		Permalink: "poder"}
+
 	post := template.Must(template.ParseFiles("template/post.html"))
-	post.Execute(w, permalink)
+	post.Execute(w, p)
 }
