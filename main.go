@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"time"
 
@@ -12,7 +11,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+// Templates
+const (
+	IndexTemplate     = "template/index.html"
+	BlogTemplate      = "template/blog.html"
+	NotFoundTemplate  = "template/404.html"
+	PostTemplate      = "template/post.html"
+	ManifestoTemplate = "template/manifesto.html"
 )
 
 // Client mongo Db
@@ -20,18 +27,18 @@ var collection *mongo.Collection
 var ctx = context.TODO()
 
 func init() {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/")
-	client, err := mongo.Connect(ctx, clientOptions)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/")
+	// client, err := mongo.Connect(ctx, clientOptions)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	err = client.Ping(ctx, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err = client.Ping(ctx, nil)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	collection = client.Database("posts").Collection("post")
+	// collection = client.Database("posts").Collection("post")
 
 }
 
@@ -65,12 +72,12 @@ func main() {
 
 // Manifesto page
 func Manifesto(w http.ResponseWriter, r *http.Request) {
-	template.Must(template.ParseFiles("template/manifesto.html")).Execute(w, struct{ Success bool }{true})
+	template.Must(template.ParseFiles(ManifestoTemplate)).Execute(w, struct{ Success bool }{true})
 }
 
 // Index page
 func Index(w http.ResponseWriter, r *http.Request) {
-	template.Must(template.ParseFiles("template/index.html")).Execute(w, struct{ Success bool }{true})
+	template.Must(template.ParseFiles(IndexTemplate)).Execute(w, struct{ Success bool }{true})
 }
 
 // Blog page
@@ -84,7 +91,7 @@ func Blog(w http.ResponseWriter, r *http.Request) {
 		Posts: posts,
 	}
 
-	blog := template.Must(template.ParseFiles("template/blog.html"))
+	blog := template.Must(template.ParseFiles(BlogTemplate))
 	blog.Execute(w, data)
 }
 
@@ -92,24 +99,27 @@ func Blog(w http.ResponseWriter, r *http.Request) {
 func GetPost(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	permalink := vars["permalink"]
-	fmt.Print(permalink)
 
-	var p = &Post{
-		Titulo:    "LOREM IPSUM  LOREM IPSUM LOREM IPSUM LOREM IPSUM ",
-		SubTitulo: "LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM ",
-		Conteudo:  "LOREM IPSUM LOREM IPSUM LOREIPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSU ",
-		Fotos:     "static/img/portfolio/fullsize/1.jpg",
-		Autor:     "Comuna da Catarina",
-		ID:        primitive.NewObjectID(),
-		Data:      time.Now()}
+	data, err := getByID(permalink)
+	// var p = &Post{
+	// 	Titulo:    "LOREM IPSUM  LOREM IPSUM LOREM IPSUM LOREM IPSUM ",
+	// 	SubTitulo: "LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM ",
+	// 	Conteudo:  "LOREM IPSUM LOREM IPSUM LOREIPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSU ",
+	// 	Fotos:     "static/img/portfolio/fullsize/1.jpg",
+	// 	Autor:     "Comuna da Catarina",
+	// 	ID:        primitive.NewObjectID(),
+	// 	Data:      time.Now()}
 
 	// err := createPost(pp)
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
 
-	post := template.Must(template.ParseFiles("template/post.html"))
-	post.Execute(w, p)
+	if err != nil {
+		template.Must(template.ParseFiles(NotFoundTemplate))
+	}
+	post := template.Must(template.ParseFiles(PostTemplate))
+	post.Execute(w, data)
 }
 
 func createPost(post *Post) error {
@@ -120,6 +130,14 @@ func createPost(post *Post) error {
 func getAll() ([]*Post, error) {
 	// passing bson.D{{}} matches all documents in the collection
 	filter := bson.D{{}}
+	return filterPosts(filter)
+}
+
+func getByID(permalink string) ([]*Post, error) {
+	filter := bson.D{
+		primitive.E{Key: "Object_ID", Value: permalink},
+	}
+
 	return filterPosts(filter)
 }
 
